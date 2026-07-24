@@ -1,0 +1,4 @@
+%{
+  "credence": {:hex, :credence, "0.8.1", "ed6a711752da643d288c47413997798bbb99f3845403f96bd393568d57b26416", [:mix], [{:sourceror, "~> 1.11", [hex: :sourceror, repo: "hexpm", optional: false]}], "hexpm", "76d2d627d0167c447a8927a72f4bdc50376de7da8bb6871505f08febe7333751"},
+  "sourceror": {:hex, :sourceror, "1.12.2", "85bfd48159f020c0cbfc72f289f11456fdc05dc43719b6f2589fb969faefa113", [:mix], [], "hexpm", "da37d3da09c5b890528802c7056a8f585a061973820d7656b6e3649c14f0e9cb"},
+}
