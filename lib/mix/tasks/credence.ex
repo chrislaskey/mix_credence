@@ -3,11 +3,14 @@ defmodule Mix.Tasks.Credence do
   @moduledoc """
   Runs the credence semantic linter/fixer on the given Elixir source files.
 
-  Accepts explicit file paths and glob patterns. Glob patterns are expanded
-  by the task itself, so quoted patterns work correctly across all shells.
+  Accepts explicit file paths, directories, and glob patterns. Directories
+  are recursively searched for `.ex` and `.exs` files. Glob patterns are
+  expanded by the task itself, so quoted patterns work correctly across all
+  shells.
 
   ## Usage
 
+      mix credence ./lib
       mix credence file1.ex file2.ex lib/my_module.ex
       mix credence "lib/**/*.ex"
       mix credence "lib/**/*.ex" "test/**/*.exs"
@@ -19,6 +22,7 @@ defmodule Mix.Tasks.Credence do
   ## Options
 
     * `--check` - Report issues without modifying files (exit 1 if issues found)
+    * `-v` / `--verbose` - Show debug-level log output from the fix pipeline
 
   ## Examples
 
@@ -30,12 +34,18 @@ defmodule Mix.Tasks.Credence do
 
   use Mix.Task
 
+  require Logger
+
   @impl Mix.Task
   def run(args) do
     {opts, patterns} = parse_args(args)
 
     if patterns == [] do
       Mix.raise("Expected at least one file path or glob pattern. Usage: mix credence <file1|glob> ...")
+    end
+
+    unless opts[:verbose] do
+      Logger.configure(level: :info)
     end
 
     files = expand_patterns(patterns)
@@ -53,7 +63,7 @@ defmodule Mix.Tasks.Credence do
   end
 
   defp parse_args(args) do
-    {opts, patterns, _} = OptionParser.parse(args, strict: [check: :boolean])
+    {opts, patterns, _} = OptionParser.parse(args, strict: [check: :boolean, verbose: :boolean], aliases: [v: :verbose])
     {opts, patterns}
   end
 
@@ -62,13 +72,20 @@ defmodule Mix.Tasks.Credence do
   defp expand_patterns(patterns) do
     patterns
     |> Enum.flat_map(fn pattern ->
-      if Regex.match?(@glob_chars, pattern) do
-        case Path.wildcard(pattern) do
-          [] -> Mix.raise("No files matched pattern: #{pattern}")
-          files -> files
-        end
-      else
-        [pattern]
+      cond do
+        Regex.match?(@glob_chars, pattern) ->
+          case Path.wildcard(pattern) do
+            [] -> Mix.raise("No files matched pattern: #{pattern}")
+            files -> files
+          end
+
+        File.dir?(pattern) ->
+          pattern
+          |> Path.join("**/*.{ex,exs}")
+          |> Path.wildcard()
+
+        true ->
+          [pattern]
       end
     end)
     |> Enum.uniq()

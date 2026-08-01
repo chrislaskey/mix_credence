@@ -21,7 +21,7 @@ defmodule MixCredence.MixProject do
 
   defp deps do
     [
-      {:credence, "~> 0.8"}
+      {:credence, ">= 0.0.0"}
     ]
   end
 
