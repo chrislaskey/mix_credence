@@ -40,10 +40,9 @@ defmodule MixCredence.MixProject do
 
   defp docs do
     [
-      main: "Mix Credence",
+      main: "readme",
       source_ref: "v#{@version}",
-      extras: ["README.md"],
-      groups_for_extras: []
+      extras: ["README.md"]
     ]
   end
 end
