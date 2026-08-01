@@ -34,14 +34,14 @@ defmodule Mix.Tasks.Credence do
 
   use Mix.Task
 
-  require Logger
-
   @impl Mix.Task
   def run(args) do
     {opts, patterns} = parse_args(args)
 
     if patterns == [] do
-      Mix.raise("Expected at least one file path or glob pattern. Usage: mix credence <file1|glob> ...")
+      Mix.raise(
+        "Expected at least one file path or glob pattern. Usage: mix credence <file1|glob> ..."
+      )
     end
 
     unless opts[:verbose] do
@@ -63,7 +63,12 @@ defmodule Mix.Tasks.Credence do
   end
 
   defp parse_args(args) do
-    {opts, patterns, _} = OptionParser.parse(args, strict: [check: :boolean, verbose: :boolean], aliases: [v: :verbose])
+    {opts, patterns, _} =
+      OptionParser.parse(args,
+        strict: [check: :boolean, verbose: :boolean],
+        aliases: [v: :verbose]
+      )
+
     {opts, patterns}
   end
 
