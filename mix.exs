@@ -1,15 +1,20 @@
 defmodule MixCredence.MixProject do
   use Mix.Project
 
+  @version "1.0.0"
+  @source_url "https://github.com/chrislaskey/mix_credence"
+
   def project do
     [
       app: :mix_credence,
-      version: "1.0.0",
-      elixir: "~> 1.20",
+      version: @version,
+      elixir: "~> 1.17",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
-      description: "A mix task wrapper for the credence semantic linter",
-      package: package()
+      description: "A mix task wrapper for the Cinderella-Man/credence semantic linter",
+      package: package(),
+      docs: docs(),
+      source_url: @source_url
     ]
   end
 
@@ -21,7 +26,8 @@ defmodule MixCredence.MixProject do
 
   defp deps do
     [
-      {:credence, ">= 0.0.0"}
+      {:credence, ">= 0.0.0"},
+      {:ex_doc, ">= 0.0.0", only: :dev, runtime: false}
     ]
   end
 
@@ -29,6 +35,15 @@ defmodule MixCredence.MixProject do
     [
       licenses: ["MIT"],
       links: %{}
+    ]
+  end
+
+  defp docs do
+    [
+      main: "Mix Credence",
+      source_ref: "v#{@version}",
+      extras: ["README.md"],
+      groups_for_extras: []
     ]
   end
 end
