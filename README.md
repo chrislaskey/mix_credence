@@ -36,9 +36,12 @@ mix deps.get
 
 ## Usage
 
-Pass one or more file paths or glob patterns:
+Pass one or more file paths, directories, or glob patterns:
 
 ```bash
+# Directory (recursively finds all .ex and .exs files)
+mix credence ./lib
+
 # Single file
 mix credence lib/my_app/router.ex
 
@@ -54,12 +57,19 @@ mix credence "lib/**/*.ex" "test/**/*.exs"
 
 Each matched file is read, passed through `Credence.fix/2`, and written back in place with the fixed source. Rules applied and any remaining issues are printed to the terminal.
 
-### Check mode (no writes)
+### Options
 
-Use `--check` to report issues without modifying files. Exits with code `1` if any unfixable issues are found — useful for CI:
+| Flag | Description |
+|------|-------------|
+| `--check` | Report issues without modifying files. Exits with code `1` if any unfixable issues are found — useful for CI. |
+| `-v` / `--verbose` | Show debug-level log output from the fix pipeline. |
 
 ```bash
+# Check mode — no writes, exit 1 on issues (good for CI)
 mix credence --check "lib/**/*.ex"
+
+# Verbose mode — see the full debug pipeline output
+mix credence -v ./lib
 ```
 
 ### Example output
