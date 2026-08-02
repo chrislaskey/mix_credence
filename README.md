@@ -36,7 +36,15 @@ mix deps.get
 
 ## Usage
 
-Pass one or more file paths, directories, or glob patterns:
+Run with no arguments to fix all source files in the project:
+
+```bash
+mix credence
+```
+
+By default this discovers `.ex` and `.exs` files in `lib/`, `src/`, `test/`, and `web/` (including umbrella sub-apps under `apps/*/`), while excluding `_build/`, `deps/`, and `node_modules/`.
+
+You can also pass explicit file paths, directories, or glob patterns:
 
 ```bash
 # Directory (recursively finds all .ex and .exs files)

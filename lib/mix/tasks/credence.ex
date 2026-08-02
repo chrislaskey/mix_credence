@@ -3,13 +3,19 @@ defmodule Mix.Tasks.Credence do
   @moduledoc """
   Runs the credence semantic linter/fixer on the given Elixir source files.
 
-  Accepts explicit file paths, directories, and glob patterns. Directories
-  are recursively searched for `.ex` and `.exs` files. Glob patterns are
-  expanded by the task itself, so quoted patterns work correctly across all
-  shells.
+  When run without arguments, automatically discovers source files in the
+  project's standard directories (`lib/`, `src/`, `test/`, `web/`) and
+  umbrella sub-apps (`apps/*/lib/`, etc.), excluding `_build/`, `deps/`,
+  and `node_modules/`.
+
+  You may also pass explicit file paths, directories, or glob patterns.
+  Directories are recursively searched for `.ex` and `.exs` files. Glob
+  patterns are expanded by the task itself, so quoted patterns work
+  correctly across all shells.
 
   ## Usage
 
+      mix credence
       mix credence ./lib
       mix credence file1.ex file2.ex lib/my_module.ex
       mix credence "lib/**/*.ex"
@@ -26,6 +32,7 @@ defmodule Mix.Tasks.Credence do
 
   ## Examples
 
+      mix credence
       mix credence lib/my_app/router.ex
       mix credence "lib/**/*.{ex,exs}"
       mix credence --check "lib/**/*.ex" "test/**/*.exs"
@@ -34,21 +41,38 @@ defmodule Mix.Tasks.Credence do
 
   use Mix.Task
 
+  @default_included [
+    "lib/",
+    "src/",
+    "test/",
+    "web/",
+    "apps/*/lib/",
+    "apps/*/src/",
+    "apps/*/test/",
+    "apps/*/web/"
+  ]
+
+  @default_excluded [~r"/_build/", ~r"/deps/", ~r"/node_modules/"]
+
   @impl Mix.Task
   def run(args) do
     {opts, patterns} = parse_args(args)
-
-    if patterns == [] do
-      Mix.raise(
-        "Expected at least one file path or glob pattern. Usage: mix credence <file1|glob> ..."
-      )
-    end
 
     unless opts[:verbose] do
       Logger.configure(level: :info)
     end
 
-    files = expand_patterns(patterns)
+    files =
+      if patterns == [] do
+        default_files()
+      else
+        expand_patterns(patterns)
+      end
+
+    if files == [] do
+      Mix.shell().info("No Elixir source files found.")
+      exit(:normal)
+    end
 
     results = Enum.map(files, &process_file(&1, opts))
 
@@ -93,8 +117,32 @@ defmodule Mix.Tasks.Credence do
           [pattern]
       end
     end)
+    |> exclude(@default_excluded)
     |> Enum.uniq()
     |> Enum.sort()
+  end
+
+  defp default_files do
+    @default_included
+    |> Enum.flat_map(fn dir_pattern ->
+      dir_pattern
+      |> Path.join("**/*.{ex,exs}")
+      |> Path.wildcard()
+    end)
+    |> exclude(@default_excluded)
+    |> Enum.uniq()
+    |> Enum.sort()
+  end
+
+  defp exclude(files, patterns) do
+    Enum.reject(files, fn file ->
+      expanded = Path.expand(file)
+
+      Enum.any?(patterns, fn
+        %Regex{} = regex -> Regex.match?(regex, expanded)
+        pattern when is_binary(pattern) -> String.contains?(expanded, pattern)
+      end)
+    end)
   end
 
   defp process_file(path, opts) do
